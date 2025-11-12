@@ -34,7 +34,7 @@ SunnyCalc supports basic arithmetic operations and features a simple interface.
 
 1. Clone the repository:
    ```
-   git clone https://github.com/<your-username>/SunnyCalc.git
+   git clone https://github.com/FaulinV/SunnyCalc.git
    ```
 2. Open the solution in **Visual Studio 2022**
 3. Restore NuGet packages (happens automatically)
