@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Rekenmachine));
-            this.lblDisplay = new Sunny.UI.UILabel();
+            this.displayLabel = new Sunny.UI.UILabel();
             this.uiBtnDiv = new Sunny.UI.UIButton();
             this.uiButton1 = new Sunny.UI.UIButton();
             this.uiBtnBk = new Sunny.UI.UIButton();
@@ -52,17 +52,17 @@
             this.uiLabel1 = new Sunny.UI.UILabel();
             this.SuspendLayout();
             // 
-            // lblDisplay
+            // displayLabel
             // 
-            this.lblDisplay.Dock = System.Windows.Forms.DockStyle.Top;
-            this.lblDisplay.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F);
-            this.lblDisplay.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            this.lblDisplay.Location = new System.Drawing.Point(0, 35);
-            this.lblDisplay.Name = "lblDisplay";
-            this.lblDisplay.Size = new System.Drawing.Size(246, 60);
-            this.lblDisplay.TabIndex = 0;
-            this.lblDisplay.Text = "0";
-            this.lblDisplay.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.displayLabel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.displayLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F);
+            this.displayLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            this.displayLabel.Location = new System.Drawing.Point(0, 35);
+            this.displayLabel.Name = "displayLabel";
+            this.displayLabel.Size = new System.Drawing.Size(246, 60);
+            this.displayLabel.TabIndex = 0;
+            this.displayLabel.Text = "0";
+            this.displayLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // uiBtnDiv
             // 
@@ -347,7 +347,7 @@
             this.Controls.Add(this.uiBtnBk);
             this.Controls.Add(this.uiButton1);
             this.Controls.Add(this.uiBtnDiv);
-            this.Controls.Add(this.lblDisplay);
+            this.Controls.Add(this.displayLabel);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "Rekenmachine";
@@ -359,7 +359,7 @@
 
         #endregion
 
-        private Sunny.UI.UILabel lblDisplay;
+        private Sunny.UI.UILabel displayLabel;
         private Sunny.UI.UIButton uiBtnDiv;
         private Sunny.UI.UIButton uiButton1;
         private Sunny.UI.UIButton uiBtnBk;
