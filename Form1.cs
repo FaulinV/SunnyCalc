@@ -1,17 +1,19 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Drawing;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using Sunny.UI; // voor de mooie knoppies en dingentjes
+using Sunny.UI;
 
 namespace rekenmachineProject
 {
     public partial class Rekenmachine : UIForm
     {
+        // huidige invoer
         private string expr = "";
+        // net "=" gedrukt?
         private bool justEvaluated = false;
+        // culture decimaal teken
         private readonly string decSep;
 
         public Rekenmachine()
@@ -23,23 +25,23 @@ namespace rekenmachineProject
             this.TitleColor = Color.Blue;
 
             decSep = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
-
-            lblDisplay.Text = "0";
-
+            displayLabel.Text = "0";
             WireAllButtons(this);
         }
 
+        // events koppelen op basis van Text
         private void WireAllButtons(Control root)
         {
             foreach (Control c in root.Controls)
             {
-                if (c is UIButton b)
+                var b = c as UIButton;
+                if (b != null)
                 {
                     string t = (b.Text ?? "").Trim();
 
                     if (t.Length == 1 && char.IsDigit(t[0])) b.Click += Digit_Click;
                     else if (t == "," || t == ".") b.Click += Dot_Click;
-                    else if (t == "+" || t == "-" || t == "×" || t == "x" || t == "*" || t == "÷" || t == "/")
+                    else if (t == "+" || t == "-" || t == "×" || t == "x" || t == "X" || t == "*" || t == "÷" || t == "/")
                     { b.Tag = NormalizeOperator(t); b.Click += Operator_Click; }
                     else if (t == "=") b.Click += Equals_Click;
                     else if (t.Equals("AC", StringComparison.OrdinalIgnoreCase)) b.Click += AC_Click;
@@ -50,6 +52,7 @@ namespace rekenmachineProject
             }
         }
 
+        // operators normaliseren
         private string NormalizeOperator(string t)
         {
             switch (t)
@@ -66,36 +69,32 @@ namespace rekenmachineProject
             }
         }
 
+        // cijfers
         private void Digit_Click(object sender, EventArgs e)
         {
             var d = ((UIButton)sender).Text;
-
             if (justEvaluated) { expr = ""; justEvaluated = false; }
-
-            if (expr == "0") expr = d;
-            else expr += d;
-
+            if (expr == "0") expr = d; else expr += d;
             UpdateDisplay();
         }
 
+        // decimaal
         private void Dot_Click(object sender, EventArgs e)
         {
             if (justEvaluated) { expr = ""; justEvaluated = false; }
-
             string lastNumber = GetLastNumberSegment();
-            if (lastNumber.Contains(decSep)) return;
+            if (lastNumber.IndexOf(decSep, StringComparison.Ordinal) >= 0) return;
 
-            if (expr.Length == 0 || IsLastCharOperator())
-                expr += "0" + decSep;
-            else
-                expr += decSep;
+            if (expr.Length == 0 || IsLastCharOperator()) expr += "0" + decSep;
+            else expr += decSep;
 
             UpdateDisplay();
         }
 
+        // operatoren
         private void Operator_Click(object sender, EventArgs e)
         {
-            var op = (string)(((UIButton)sender).Tag ?? NormalizeOperator(((UIButton)sender).Text.Trim()));
+            string op = (string)(((UIButton)sender).Tag ?? NormalizeOperator(((UIButton)sender).Text.Trim()));
             if (op == null) return;
 
             justEvaluated = false;
@@ -107,40 +106,34 @@ namespace rekenmachineProject
             }
 
             if (IsLastCharOperator())
-            {
                 expr = expr.Substring(0, expr.Length - 1) + op;
-            }
-            else if (expr.EndsWith(decSep))
-            {
-                return;
-            }
-            else
-            {
-                expr += op;
-            }
+            else if (expr.EndsWith(decSep)) return;
+            else expr += op;
 
             UpdateDisplay();
         }
 
+        // "="
         private void Equals_Click(object sender, EventArgs e)
         {
             if (expr.Length == 0) return;
             if (IsLastCharOperator() || expr.EndsWith(decSep)) return;
 
-            var ok = TryEvaluate(expr, out string result);
-            if (ok)
+            try
             {
+                string result = EvaluateExpression(expr, decSep);
                 expr = result;
                 justEvaluated = true;
                 UpdateDisplay();
             }
-            else
+            catch
             {
-                lblDisplay.Text = "Error";
+                displayLabel.Text = "Error";
                 justEvaluated = true;
             }
         }
 
+        // AC
         private void AC_Click(object sender, EventArgs e)
         {
             expr = "";
@@ -148,6 +141,7 @@ namespace rekenmachineProject
             UpdateDisplay();
         }
 
+        // C
         private void C_Click(object sender, EventArgs e)
         {
             int cut = LastOperatorIndex();
@@ -155,6 +149,7 @@ namespace rekenmachineProject
             UpdateDisplay();
         }
 
+        // backspace
         private void Backspace_Click(object sender, EventArgs e)
         {
             if (expr.Length == 0 || justEvaluated)
@@ -168,11 +163,13 @@ namespace rekenmachineProject
             UpdateDisplay();
         }
 
+        // display updaten
         private void UpdateDisplay()
         {
-            lblDisplay.Text = expr.Length == 0 ? "0" : expr;
+            displayLabel.Text = expr.Length == 0 ? "0" : expr;
         }
 
+        // laatste char operator?
         private bool IsLastCharOperator()
         {
             if (expr.Length == 0) return false;
@@ -180,6 +177,7 @@ namespace rekenmachineProject
             return ch == '+' || ch == '-' || ch == '×' || ch == '÷';
         }
 
+        // index van laatste operator
         private int LastOperatorIndex()
         {
             int i1 = expr.LastIndexOf('+');
@@ -189,34 +187,25 @@ namespace rekenmachineProject
             return Math.Max(Math.Max(i1, i2), Math.Max(i3, i4));
         }
 
+        // laatste getal
         private string GetLastNumberSegment()
         {
             int cut = LastOperatorIndex();
             return cut >= 0 ? expr.Substring(cut + 1) : expr;
         }
 
-        private bool TryEvaluate(string input, out string result)
+        // rekenen + locale
+        private string EvaluateExpression(string input, string decimalSeparator)
         {
-            try
-            {
-                string s = input.Replace('×', '*').Replace('÷', '/');
-                if (decSep == ",") s = s.Replace(',', '.');
+            string s = input.Replace('×', '*').Replace('÷', '/');
+            if (decimalSeparator == ",") s = s.Replace(',', '.');
 
-                var dt = new DataTable();
-                dt.Locale = CultureInfo.InvariantCulture;
-                object val = dt.Compute(s, null);
+            var dt = new DataTable { Locale = CultureInfo.InvariantCulture };
+            object val = dt.Compute(s, null);
 
-                string text = Convert.ToDouble(val, CultureInfo.InvariantCulture)
-                                  .ToString("G15", CultureInfo.CurrentCulture);
-
-                result = text;
-                return true;
-            }
-            catch
-            {
-                result = null;
-                return false;
-            }
+            return Convert.ToDouble(val, CultureInfo.InvariantCulture)
+                         .ToString("G15", CultureInfo.CurrentCulture);
         }
+        private void displayLabel_Click(object sender, EventArgs e) { }
     }
 }
